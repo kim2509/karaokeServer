@@ -9,5 +9,6 @@ PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
 	<mappers>
 		<mapper resource="sql/sql-playlist.xml"/>
 		<mapper resource="sql/sql-user.xml"/>
+		<mapper resource="sql/test.xml"/>
 	</mappers>
 </configuration>

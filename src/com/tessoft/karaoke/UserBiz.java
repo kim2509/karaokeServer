@@ -29,10 +29,10 @@ public class UserBiz extends CommonBiz {
 		{
 			sqlSession.insert("com.tessoft.karaoke.user.insertTempUser", param );	
 		}
-//		else
-//		{
-//			sqlSession.update("com.tessoft.karaoke.user.updateTempUser", param );
-//		}
+		else
+		{
+			sqlSession.update("com.tessoft.karaoke.user.updateTempUser", param );
+		}
 		
 		return param;
 	}

@@ -41,13 +41,13 @@
 		values(#{keyword}, #{result}, DATE_ADD(NOW(), INTERVAL 1 DAY), NOW());
 	</insert>
 	
-	<select id="getSearchHistoryByKeyword" resultType="java.util.HashMap" parameterMap="java.util.HashMap">
+	<select id="getSearchHistoryByKeyword" resultType="java.util.HashMap" parameterType="java.util.HashMap">
 		select * from search_history
 		where keyword = #{keyword} and expireDate &gt; NOW()
 		limit 0,1;
 	</select>
 	
-	<delete id="deleteExpiredSearchHistoryByKeyword" parameterMap="java.util.HashMap">
+	<delete id="deleteExpiredSearchHistoryByKeyword" parameterType="java.util.HashMap">
 		delete from search_history
 		where keyword = #{keyword} and expireDate &lt; NOW();
 	</delete>

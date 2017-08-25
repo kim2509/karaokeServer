@@ -2,6 +2,7 @@ package com.tessoft.karaoke;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 
@@ -33,8 +34,8 @@ public class PlayListController extends BaseController{
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@RequestMapping( value ="/playlist/myPlayList.do")
-	public @ResponseBody APIResponse myPlayList(HttpServletRequest request, @RequestBody String bodyString)
+	@RequestMapping( value ="/playlist/mainInfo.do")
+	public @ResponseBody APIResponse mainInfo(HttpServletRequest request, @RequestBody String bodyString)
 	{
 		APIResponse response = new APIResponse();
 		
@@ -42,9 +43,12 @@ public class PlayListController extends BaseController{
 		{
 			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
 			
-			List<HashMap> myPlayList = PlayListBiz.getInstance(sqlSession).getPlayListByUser(param);
-			
 			HashMap info = new HashMap();
+			
+			List<HashMap> playlist = PlayListBiz.getInstance(sqlSession).getAllPlayList();
+			info.put("popularList", playlist);
+			
+			List<HashMap> myPlayList = PlayListBiz.getInstance(sqlSession).getPlayListByUser(param);
 			
 			if ( myPlayList.size() < 1 )
 			{
@@ -53,7 +57,7 @@ public class PlayListController extends BaseController{
 				myPlayList.add(param);
 			}
 
-			info.put("playList", myPlayList);
+			info.put("myPlayList", myPlayList);
 			
 			response.setData(info);
 		}
@@ -156,6 +160,8 @@ public class PlayListController extends BaseController{
 
 			String title = Util.getStringFromHash(param, "title");
 			
+			param.put("keyword", title );
+			
 			PlayListBiz.getInstance(sqlSession).deleteExpiredSearchHistoryByKeyword(param);
 			List<HashMap> searchHistory = PlayListBiz.getInstance(sqlSession).getSearchHistoryByKeyword(param);
 			
@@ -168,7 +174,7 @@ public class PlayListController extends BaseController{
 			}
 			else
 			{
-				String url = "https://www.googleapis.com/youtube/v3/search?part=id,snippet&q=" + title +
+				String url = "https://www.googleapis.com/youtube/v3/search?part=id,snippet&q=" + URLEncoder.encode( title , "utf8") +
 	                    "&type=video&key=" + YoutubeApiKey;
 				
 				HttpClient client = HttpClientBuilder.create().build();

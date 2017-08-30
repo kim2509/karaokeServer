@@ -23,13 +23,14 @@
 	</select>
 	
 	<select id="getPlayListSongs" resultType="java.util.HashMap">
-		select * from song
+		select * from play_list_detail
 		where playListNo=#{playListNo}
+		order by createdDate desc
 	</select>
 	
 	<insert id="insertSong" parameterType="java.util.HashMap"
 		useGeneratedKeys="true" keyProperty="songNo" keyColumn="songNo">
-		insert into song(playListNo, title, singer, youtubeNo1, youtubeNo2, createdDate)
+		insert into play_list_detail(playListNo, title, singer, youtubeNo1, youtubeNo2, createdDate)
 		values(#{playListNo}, #{title}, #{singer}, #{youtubeNo1}, #{youtubeNo2}, NOW())
 		<selectKey keyProperty="songNo" resultType="String" order="AFTER">
 			select LAST_INSERT_ID();
@@ -51,4 +52,17 @@
 		delete from search_history
 		where keyword = #{keyword} and expireDate &lt; NOW();
 	</delete>
+	
+	<select id="searchMySong" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+		select pd.*
+		from play_list_detail pd
+			left outer join play_list_master pm on pm.playListNo=pd.playListNo
+		where pm.tempUserNo=#{tempUserNo} and replace(pd.title,' ','') like concat('%',#{keyword},'%')
+	</select>
+	
+	<select id="searchSong" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+		select *
+		from play_list_detail
+		where playListNo= #{playListNo} and title=#{title}
+	</select>
 </mapper>

@@ -72,6 +72,41 @@ public class PlayListController extends BaseController{
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@RequestMapping( value ="/playlist/addSong.do")
+	public @ResponseBody APIResponse addSong(HttpServletRequest request, @RequestBody String bodyString)
+	{
+		APIResponse response = new APIResponse();
+		
+		try
+		{
+			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
+			
+			if ( Util.isEmptyForKey(param, "playListNo") )
+			{
+				response.setResCode( ErrorCode.INVALID_INPUT );
+				response.setResMsg("요청값이 올바르지 않습니다.");
+			}
+			else
+			{
+				PlayListBiz.getInstance(sqlSession).addSong(param);
+			}
+			
+			HashMap info = new HashMap();
+			info.put("song", param);
+			
+			response.setData(info);
+		}
+		catch( Exception ex )
+		{
+			response.setResCode( ErrorCode.UNKNOWN_ERROR );
+			response.setResMsg("Play list 를 읽어오는 도중에 오류가 발생했습니다.");
+			logger.error( ex );
+		}
+		
+		return response;
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@RequestMapping( value ="/playlist/addSongs.do")
 	public @ResponseBody APIResponse addSongs(HttpServletRequest request, @RequestBody String bodyString)
 	{
@@ -140,6 +175,40 @@ public class PlayListController extends BaseController{
 		{
 			response.setResCode( ErrorCode.UNKNOWN_ERROR );
 			response.setResMsg("Play list 를 읽어오는 도중에 오류가 발생했습니다.");
+			logger.error( ex );
+		}
+		
+		return response;
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@RequestMapping( value ="/playlist/searchMySong.do")
+	public @ResponseBody APIResponse searchMySong(HttpServletRequest request, @RequestBody String bodyString)
+	{
+		APIResponse response = new APIResponse();
+		
+		try
+		{
+			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
+			HashMap info = new HashMap();
+			
+			if ( Util.isEmptyForKey(param, "playListNo") )
+			{
+				response.setResCode( ErrorCode.INVALID_INPUT );
+				response.setResMsg("요청값이 올바르지 않습니다.");
+			}
+			else
+			{
+				List<HashMap> songList = PlayListBiz.getInstance(sqlSession).searchMySong(param);
+				info.put("songList", songList);
+			}
+
+			response.setData(info);
+		}
+		catch( Exception ex )
+		{
+			response.setResCode( ErrorCode.UNKNOWN_ERROR );
+			response.setResMsg("my song list 를 읽어오는 도중에 오류가 발생했습니다.");
 			logger.error( ex );
 		}
 		

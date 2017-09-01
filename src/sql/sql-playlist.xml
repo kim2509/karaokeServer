@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.tessoft.karaoke">
+<mapper namespace="com.tessoft.karaoke.playlist">
 
 	<insert id="insertPlayList" parameterType="java.util.HashMap"
 		useGeneratedKeys="true" keyProperty="playListNo" keyColumn="playListNo">
@@ -23,16 +23,31 @@
 	</select>
 	
 	<select id="getPlayListSongs" resultType="java.util.HashMap">
-		select * from play_list_detail
+		select pd.*
+		, s.videoID as videoID1, s2.videoID as videoID2
+		, s.playCount as playCount1, s2.playCount as playCount2
+		from play_list_detail pd
+			left outer join (
+				select ss.songNo, ss.videoID, count(sh.songNo) as playCount 
+				from song_play_history sh
+				left outer join song ss on ss.songNo = sh.songNo
+				group by videoID
+			) s on s.songNo= pd.songNo1
+			left outer join (
+				select ss.songNo, ss.videoID, count(sh.songNo) as playCount 
+				from song_play_history sh
+				left outer join song ss on ss.songNo = sh.songNo
+				group by videoID
+			) s2 on s2.songNo= pd.songNo2
 		where playListNo=#{playListNo}
-		order by createdDate desc
+		order by pd.createdDate desc
 	</select>
 	
 	<insert id="insertSong" parameterType="java.util.HashMap"
-		useGeneratedKeys="true" keyProperty="songNo" keyColumn="songNo">
-		insert into play_list_detail(playListNo, title, singer, youtubeNo1, youtubeNo2, createdDate)
-		values(#{playListNo}, #{title}, #{singer}, #{youtubeNo1}, #{youtubeNo2}, NOW())
-		<selectKey keyProperty="songNo" resultType="String" order="AFTER">
+		useGeneratedKeys="true" keyProperty="itemNo" keyColumn="itemNo">
+		insert into play_list_detail(playListNo, title, singer, songNo1, songNo2, createdDate)
+		values(#{playListNo}, #{title}, #{singer}, #{songNo1}, #{songNo2}, NOW())
+		<selectKey keyProperty="itemNo" resultType="String" order="AFTER">
 			select LAST_INSERT_ID();
 		</selectKey>
 	</insert>
@@ -65,4 +80,47 @@
 		from play_list_detail
 		where playListNo= #{playListNo} and title=#{title}
 	</select>
+	
+	<select id="selectSongByVideoID" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+		select *
+		from song
+		where videoID=#{videoID}
+	</select>
+	
+	<insert id="insertSongItem" parameterType="java.util.HashMap"
+		useGeneratedKeys="true" keyProperty="songNo" keyColumn="songNo">
+		insert into song(videoID, title, type, createdDate) values(#{videoID}, #{title}, #{type}, NOW());
+		<selectKey keyProperty="songNo" resultType="String" order="AFTER">
+			select LAST_INSERT_ID();
+		</selectKey>
+	</insert>
+	
+	<insert id="insertSongPlayHistory" parameterType="java.util.HashMap">
+		insert into song_play_history(songNo, tempUserNo, createdDate) values(#{songNo},#{tempUserNo},NOW());
+	</insert>
+	
+	<update id="updatePlayListItemType" parameterType="java.util.HashMap">
+		update play_list_detail
+		set createdDate = createdDate
+		<if test="type == 1">
+			, songNo1 = #{songNo1}
+		</if> 
+		<if test="type == 2">
+			, songNo2 = #{songNo2}
+		</if> 
+		where playListNo=#{playListNo} and itemNo=#{itemNo}
+	</update>
+	
+	<select id="getPlayListDetail" resultType="java.util.HashMap">
+		select * from play_list_detail
+		where itemNo=#{itemNo}
+	</select>
+	
+	<update id="updatePlayListItem" parameterType="java.util.HashMap">
+		update play_list_detail
+		set title=#{title}
+		, singer=#{singer} 
+		where playListNo=#{playListNo} and itemNo=#{itemNo}
+	</update>
+	
 </mapper>

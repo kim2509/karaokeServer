@@ -123,4 +123,9 @@
 		where playListNo=#{playListNo} and itemNo=#{itemNo}
 	</update>
 	
+	<update id="deletePlayListItem" parameterType="java.util.HashMap">
+		delete from play_list_detail
+		where playListNo=#{playListNo} and itemNo=#{itemNo}
+	</update>
+	
 </mapper>

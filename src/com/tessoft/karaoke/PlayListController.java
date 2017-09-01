@@ -34,6 +34,68 @@ public class PlayListController extends BaseController{
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@RequestMapping( value ="/playlist/popularList.do")
+	public @ResponseBody APIResponse popularList(HttpServletRequest request, @RequestBody String bodyString)
+	{
+		APIResponse response = new APIResponse();
+		
+		try
+		{
+			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
+			
+			HashMap info = new HashMap();
+			
+			List<HashMap> playlist = PlayListBiz.getInstance(sqlSession).getAllPlayList();
+			info.put("popularList", playlist);
+			
+			response.setData(info);
+		}
+		catch( Exception ex )
+		{
+			response.setResCode( ErrorCode.UNKNOWN_ERROR );
+			response.setResMsg("Play list 를 읽어오는 도중에 오류가 발생했습니다.");
+			logger.error( ex );
+		}
+		
+		return response;
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@RequestMapping( value ="/playlist/myList.do")
+	public @ResponseBody APIResponse myList(HttpServletRequest request, @RequestBody String bodyString)
+	{
+		APIResponse response = new APIResponse();
+		
+		try
+		{
+			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
+			
+			HashMap info = new HashMap();
+			
+			List<HashMap> myPlayList = PlayListBiz.getInstance(sqlSession).getPlayListByUser(param);
+			
+			if ( myPlayList.size() < 1 )
+			{
+				param.put("Name", "기본");
+				PlayListBiz.getInstance(sqlSession).createNewPlayList(param);
+				myPlayList.add(param);
+			}
+
+			info.put("myList", myPlayList);
+			
+			response.setData(info);
+		}
+		catch( Exception ex )
+		{
+			response.setResCode( ErrorCode.UNKNOWN_ERROR );
+			response.setResMsg("Play list 를 읽어오는 도중에 오류가 발생했습니다.");
+			logger.error( ex );
+		}
+		
+		return response;
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@RequestMapping( value ="/playlist/mainInfo.do")
 	public @ResponseBody APIResponse mainInfo(HttpServletRequest request, @RequestBody String bodyString)
 	{
@@ -44,7 +106,7 @@ public class PlayListController extends BaseController{
 			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
 			
 			HashMap info = new HashMap();
-			
+			/*
 			List<HashMap> playlist = PlayListBiz.getInstance(sqlSession).getAllPlayList();
 			info.put("popularList", playlist);
 			
@@ -58,6 +120,7 @@ public class PlayListController extends BaseController{
 			}
 
 			info.put("myPlayList", myPlayList);
+			*/
 			
 			response.setData(info);
 		}
@@ -386,6 +449,41 @@ public class PlayListController extends BaseController{
 		{
 			response.setResCode( ErrorCode.UNKNOWN_ERROR );
 			response.setResMsg("노래정보를 읽어오는 도중에 오류가 발생했습니다.");
+			logger.error( ex );
+		}
+		
+		return response;
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@RequestMapping( value ="/playlist/deleteItem.do")
+	public @ResponseBody APIResponse deleteItem(HttpServletRequest request, @RequestBody String bodyString)
+	{
+		APIResponse response = new APIResponse();
+		
+		try
+		{
+			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
+			HashMap info = new HashMap();
+			
+			if ( Util.isEmptyForKey(param, "playListNo") )
+			{
+				response.setResCode( ErrorCode.INVALID_INPUT );
+				response.setResMsg("요청값이 올바르지 않습니다.");
+			}
+			else
+			{
+				PlayListBiz.getInstance(sqlSession).deletePlayListItem(param);
+				List<HashMap> songList = PlayListBiz.getInstance(sqlSession).getPlayListByPlayList(param);
+				info.put("songList", songList);
+			}
+
+			response.setData(info);
+		}
+		catch( Exception ex )
+		{
+			response.setResCode( ErrorCode.UNKNOWN_ERROR );
+			response.setResMsg("항목을 삭제하는 도중에 오류가 발생했습니다.");
 			logger.error( ex );
 		}
 		

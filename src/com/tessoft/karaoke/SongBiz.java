@@ -27,4 +27,10 @@ public class SongBiz extends CommonBiz {
 		HashMap songInfo = sqlSession.selectOne("com.tessoft.karaoke.song.getSongDetail", param);
 		return songInfo;
 	}
+	
+	public List<HashMap> getPopularList(HashMap param)
+	{
+		List<HashMap> songList = sqlSession.selectList("com.tessoft.karaoke.song.getPopularList", param);
+		return songList;
+	}
 }

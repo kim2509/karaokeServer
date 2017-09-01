@@ -117,4 +117,10 @@ public class PlayListBiz extends CommonBiz {
 		int dbResult = sqlSession.update("com.tessoft.karaoke.playlist.updatePlayListItem", param );
 		return dbResult;
 	}
+	
+	public int deletePlayListItem(HashMap param) {
+		// TODO Auto-generated method stub
+		int dbResult = sqlSession.delete("com.tessoft.karaoke.playlist.deletePlayListItem", param );
+		return dbResult;
+	}
 }

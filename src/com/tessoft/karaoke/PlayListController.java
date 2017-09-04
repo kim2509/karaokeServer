@@ -74,7 +74,14 @@ public class PlayListController extends BaseController{
 			
 			List<HashMap> myPlayList = PlayListBiz.getInstance(sqlSession).getPlayListByUser(param);
 			
-			if ( myPlayList.size() < 1 )
+			boolean bBasicExists = false;
+			
+			for ( int i = 0; i < myPlayList.size(); i++ ) {
+				if ( "기본".equals( Util.getStringFromHash(myPlayList.get(i), "Name")))
+					bBasicExists = true;
+			}
+			
+			if ( !bBasicExists )
 			{
 				param.put("Name", "기본");
 				PlayListBiz.getInstance(sqlSession).createNewPlayList(param);
@@ -163,6 +170,176 @@ public class PlayListController extends BaseController{
 		{
 			response.setResCode( ErrorCode.UNKNOWN_ERROR );
 			response.setResMsg("Play list 를 읽어오는 도중에 오류가 발생했습니다.");
+			logger.error( ex );
+		}
+		
+		return response;
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@RequestMapping( value ="/playlist/share.do")
+	public @ResponseBody APIResponse share(HttpServletRequest request, @RequestBody String bodyString)
+	{
+		APIResponse response = new APIResponse();
+		
+		try
+		{
+			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
+			
+			HashMap info = new HashMap();
+			
+			if ( Util.isEmptyForKey(param, "playListNo") )
+			{
+				response.setResCode( ErrorCode.INVALID_INPUT );
+				response.setResMsg("요청값이 올바르지 않습니다.");
+			}
+			else
+			{
+				PlayListBiz.getInstance(sqlSession).updatePlaylistShare(param);
+				info.put("item", param);
+			}
+			
+			response.setData(info);
+		}
+		catch( Exception ex )
+		{
+			response.setResCode( ErrorCode.UNKNOWN_ERROR );
+			response.setResMsg("Playlist 공유 도중에 오류가 발생했습니다.");
+			logger.error( ex );
+		}
+		
+		return response;
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@RequestMapping( value ="/playlist/update.do")
+	public @ResponseBody APIResponse update(HttpServletRequest request, @RequestBody String bodyString)
+	{
+		APIResponse response = new APIResponse();
+		
+		try
+		{
+			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
+			
+			HashMap info = new HashMap();
+			
+			if ( Util.isEmptyForKey(param, "playListNo") )
+			{
+				response.setResCode( ErrorCode.INVALID_INPUT );
+				response.setResMsg("요청값이 올바르지 않습니다.");
+			}
+			else if ( Util.isEmptyForKey(param, "tempUserNo") )
+			{
+				response.setResCode( ErrorCode.INVALID_INPUT );
+				response.setResMsg("사용자 정보가 올바르지 않습니다.");
+			}
+			else
+			{
+				PlayListBiz.getInstance(sqlSession).updatePlaylist(param);
+				info.put("item", param);
+			}
+			
+			response.setData(info);
+		}
+		catch( Exception ex )
+		{
+			response.setResCode( ErrorCode.UNKNOWN_ERROR );
+			response.setResMsg("Playlist 수정도중에 오류가 발생했습니다.");
+			logger.error( ex );
+		}
+		
+		return response;
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@RequestMapping( value ="/playlist/add.do")
+	public @ResponseBody APIResponse add(HttpServletRequest request, @RequestBody String bodyString)
+	{
+		APIResponse response = new APIResponse();
+		
+		try
+		{
+			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
+			
+			HashMap info = new HashMap();
+			
+			if ( Util.isEmptyForKey(param, "tempUserNo") )
+			{
+				response.setResCode( ErrorCode.INVALID_INPUT );
+				response.setResMsg("사용자 정보가 올바르지 않습니다.");
+			}
+			else
+			{
+				PlayListBiz.getInstance(sqlSession).createNewPlayList(param);
+				
+				List<HashMap> myPlayList = PlayListBiz.getInstance(sqlSession).getPlayListByUser(param);
+				
+				info.put("myList", myPlayList);
+			}
+			
+			response.setData(info);
+		}
+		catch( Exception ex )
+		{
+			response.setResCode( ErrorCode.UNKNOWN_ERROR );
+			response.setResMsg("Playlist 생성도중에 오류가 발생했습니다.");
+			logger.error( ex );
+		}
+		
+		return response;
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@RequestMapping( value ="/playlist/delete.do")
+	public @ResponseBody APIResponse delete(HttpServletRequest request, @RequestBody String bodyString)
+	{
+		APIResponse response = new APIResponse();
+		
+		try
+		{
+			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
+			
+			HashMap info = new HashMap();
+			
+			if ( Util.isEmptyForKey(param, "playListNo") )
+			{
+				response.setResCode( ErrorCode.INVALID_INPUT );
+				response.setResMsg("사용자 정보가 올바르지 않습니다.");
+			}
+			else if ( Util.isEmptyForKey(param, "tempUserNo") )
+			{
+				response.setResCode( ErrorCode.INVALID_INPUT );
+				response.setResMsg("사용자 정보가 올바르지 않습니다.");
+			}
+			else
+			{
+				PlayListBiz.getInstance(sqlSession).deletePlayList(param);
+				
+				List<HashMap> myPlayList = PlayListBiz.getInstance(sqlSession).getPlayListByUser(param);
+				
+				boolean bBasicExists = false;
+				
+				for ( int i = 0; i < myPlayList.size(); i++ ) {
+					if ( "기본".equals( Util.getStringFromHash(myPlayList.get(i), "Name")))
+						bBasicExists = true;
+				}
+				
+				if ( !bBasicExists )
+				{
+					param.put("Name", "기본");
+					PlayListBiz.getInstance(sqlSession).createNewPlayList(param);
+					myPlayList.add(param);
+				}
+				
+				info.put("myList", myPlayList);
+			}
+			
+			response.setData(info);
+		}
+		catch( Exception ex )
+		{
+			response.setResCode( ErrorCode.UNKNOWN_ERROR );
+			response.setResMsg("Playlist 생성도중에 오류가 발생했습니다.");
 			logger.error( ex );
 		}
 		
@@ -411,9 +588,9 @@ public class PlayListController extends BaseController{
 			
 			HashMap data = new HashMap();
 			
-			HashMap itemInfo = PlayListBiz.getInstance(sqlSession).getPlayListDetail(param);
+			HashMap playlistInfo = PlayListBiz.getInstance(sqlSession).getPlayListDetail(param);
 			
-			data.put("itemInfo", itemInfo );
+			data.put("playlistInfo", playlistInfo );
 			
 			response.setData(data);
 		}

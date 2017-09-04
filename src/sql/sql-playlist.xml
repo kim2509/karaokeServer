@@ -7,19 +7,32 @@
 	<insert id="insertPlayList" parameterType="java.util.HashMap"
 		useGeneratedKeys="true" keyProperty="playListNo" keyColumn="playListNo">
 		insert into play_list_master(Name, tempUserNo, categoryNo, shareYN, createdDate)
-		values(#{Name}, #{tempUserNo}, #{categoryNo}, 'N', NOW())
+		values(#{Name}, #{tempUserNo}, #{categoryNo}, #{shareYN}, NOW())
 		<selectKey keyProperty="playListNo" resultType="String" order="AFTER">
 			select LAST_INSERT_ID();
 		</selectKey>
 	</insert>
 	
 	<select id="getAllPlayList" resultType="java.util.HashMap">
-		select * from play_list_master limit 0,10;
+		select pm.* from play_list_master pm
+			left outer join (
+				select playListNo, count(playListNo) as itemCount
+				from play_list_detail
+				group by playListNo
+			) pd on pm.playListNo=pd.playListNo
+		where pm.shareYN='Y'
+		and pd.itemCount &gt;= 10
+		limit 0,100;
 	</select>
 	
 	<select id="getPlayListByUser" resultType="java.util.HashMap">
 		select * from play_list_master
 		where tempUserNo=#{tempUserNo}
+	</select>
+	
+	<select id="getPlayListDetail" resultType="java.util.HashMap">
+		select * from play_list_master
+		where playListNo=#{playListNo}
 	</select>
 	
 	<select id="getPlayListSongs" resultType="java.util.HashMap">
@@ -111,11 +124,6 @@
 		where playListNo=#{playListNo} and itemNo=#{itemNo}
 	</update>
 	
-	<select id="getPlayListDetail" resultType="java.util.HashMap">
-		select * from play_list_detail
-		where itemNo=#{itemNo}
-	</select>
-	
 	<update id="updatePlayListItem" parameterType="java.util.HashMap">
 		update play_list_detail
 		set title=#{title}
@@ -128,4 +136,22 @@
 		where playListNo=#{playListNo} and itemNo=#{itemNo}
 	</update>
 	
+	<update id="updatePlaylistShare" parameterType="java.util.HashMap">
+		update play_list_master
+		set shareYN=#{shareYN}
+		, Name=#{Name}
+		where playListNo=#{playListNo} and tempUserNo=#{tempUserNo}
+	</update>
+	
+	<update id="updatePlaylist" parameterType="java.util.HashMap">
+		update play_list_master
+		set shareYN=#{shareYN}
+		, Name=#{Name}
+		where playListNo=#{playListNo} and tempUserNo=#{tempUserNo}
+	</update>
+	
+	<delete id="deletePlayList">
+		delete from play_list_master
+		where playListNo=#{playListNo} and tempUserNo=#{tempUserNo}
+	</delete>
 </mapper>

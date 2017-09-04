@@ -108,8 +108,8 @@ public class PlayListBiz extends CommonBiz {
 	
 	public HashMap getPlayListDetail(HashMap param)
 	{
-		HashMap itemInfo = sqlSession.selectOne("com.tessoft.karaoke.playlist.getPlayListDetail", param);
-		return itemInfo;
+		HashMap playListInfo = sqlSession.selectOne("com.tessoft.karaoke.playlist.getPlayListDetail", param);
+		return playListInfo;
 	}
 	
 	public int updatePlayListItem(HashMap param) {
@@ -118,9 +118,27 @@ public class PlayListBiz extends CommonBiz {
 		return dbResult;
 	}
 	
+	public int updatePlaylistShare(HashMap param) {
+		// TODO Auto-generated method stub
+		int dbResult = sqlSession.update("com.tessoft.karaoke.playlist.updatePlaylistShare", param );
+		return dbResult;
+	}
+	
+	public int updatePlaylist(HashMap param) {
+		// TODO Auto-generated method stub
+		int dbResult = sqlSession.update("com.tessoft.karaoke.playlist.updatePlaylist", param );
+		return dbResult;
+	}
+	
 	public int deletePlayListItem(HashMap param) {
 		// TODO Auto-generated method stub
 		int dbResult = sqlSession.delete("com.tessoft.karaoke.playlist.deletePlayListItem", param );
+		return dbResult;
+	}
+	
+	public int deletePlayList(HashMap param) {
+		// TODO Auto-generated method stub
+		int dbResult = sqlSession.delete("com.tessoft.karaoke.playlist.deletePlayList", param );
 		return dbResult;
 	}
 }

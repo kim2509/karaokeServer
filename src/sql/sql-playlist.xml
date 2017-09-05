@@ -56,15 +56,6 @@
 		order by pd.createdDate desc
 	</select>
 	
-	<insert id="insertSong" parameterType="java.util.HashMap"
-		useGeneratedKeys="true" keyProperty="itemNo" keyColumn="itemNo">
-		insert into play_list_detail(playListNo, title, singer, songNo1, songNo2, createdDate)
-		values(#{playListNo}, #{title}, #{singer}, #{songNo1}, #{songNo2}, NOW())
-		<selectKey keyProperty="itemNo" resultType="String" order="AFTER">
-			select LAST_INSERT_ID();
-		</selectKey>
-	</insert>
-	
 	<insert id="insertSearch" parameterType="java.util.HashMap">
 		insert into search_history(keyword, result, expireDate, createdDate)
 		values(#{keyword}, #{result}, DATE_ADD(NOW(), INTERVAL 1 DAY), NOW());
@@ -121,13 +112,6 @@
 		<if test="type == 2">
 			, songNo2 = #{songNo2}
 		</if> 
-		where playListNo=#{playListNo} and itemNo=#{itemNo}
-	</update>
-	
-	<update id="updatePlayListItem" parameterType="java.util.HashMap">
-		update play_list_detail
-		set title=#{title}
-		, singer=#{singer} 
 		where playListNo=#{playListNo} and itemNo=#{itemNo}
 	</update>
 	

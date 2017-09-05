@@ -142,41 +142,6 @@ public class PlayListController extends BaseController{
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@RequestMapping( value ="/playlist/addSong.do")
-	public @ResponseBody APIResponse addSong(HttpServletRequest request, @RequestBody String bodyString)
-	{
-		APIResponse response = new APIResponse();
-		
-		try
-		{
-			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
-			
-			if ( Util.isEmptyForKey(param, "playListNo") )
-			{
-				response.setResCode( ErrorCode.INVALID_INPUT );
-				response.setResMsg("요청값이 올바르지 않습니다.");
-			}
-			else
-			{
-				PlayListBiz.getInstance(sqlSession).addSong(param);
-			}
-			
-			HashMap info = new HashMap();
-			info.put("song", param);
-			
-			response.setData(info);
-		}
-		catch( Exception ex )
-		{
-			response.setResCode( ErrorCode.UNKNOWN_ERROR );
-			response.setResMsg("Play list 를 읽어오는 도중에 오류가 발생했습니다.");
-			logger.error( ex );
-		}
-		
-		return response;
-	}
-	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@RequestMapping( value ="/playlist/share.do")
 	public @ResponseBody APIResponse share(HttpServletRequest request, @RequestBody String bodyString)
 	{
@@ -369,7 +334,7 @@ public class PlayListController extends BaseController{
 				{
 					HashMap song = songList.get(i);
 					song.put("playListNo", Util.getStringFromHash(param, "playListNo"));
-					PlayListBiz.getInstance(sqlSession).addSong( song );	
+					PlayListItemBiz.getInstance(sqlSession).addSong( song );	
 				}
 			}
 			
@@ -589,36 +554,7 @@ public class PlayListController extends BaseController{
 			HashMap data = new HashMap();
 			
 			HashMap playlistInfo = PlayListBiz.getInstance(sqlSession).getPlayListDetail(param);
-			
 			data.put("playlistInfo", playlistInfo );
-			
-			response.setData(data);
-		}
-		catch( Exception ex )
-		{
-			response.setResCode( ErrorCode.UNKNOWN_ERROR );
-			response.setResMsg("노래정보를 읽어오는 도중에 오류가 발생했습니다.");
-			logger.error( ex );
-		}
-		
-		return response;
-	}
-	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@RequestMapping( value ="/playlist/updatePlayListItem.do")
-	public @ResponseBody APIResponse updatePlayListItem(HttpServletRequest request, @RequestBody String bodyString)
-	{
-		APIResponse response = new APIResponse();
-		
-		try
-		{
-			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
-			
-			HashMap data = new HashMap();
-			
-			int dbResult = PlayListBiz.getInstance(sqlSession).updatePlayListItem(param);
-			
-			data.put("dbResult", String.valueOf( dbResult ) );
 			
 			response.setData(data);
 		}

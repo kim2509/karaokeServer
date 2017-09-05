@@ -9,4 +9,28 @@
 		where itemNo=#{itemNo}
 	</select>
 	
+	<update id="updatePlayListItem" parameterType="java.util.HashMap">
+		update play_list_detail
+		set createdDate=createdDate 
+		<if test="title != null and title != ''">
+			, title=#{title}
+		</if>
+		<if test="singer != null and singer != ''">
+			, singer=#{singer}
+		</if>
+		<if test="playListNo != null and playListNo != ''">
+			, playListNo=#{playListNo}
+		</if>
+		where itemNo=#{itemNo}
+	</update>
+	
+	<insert id="insertSong" parameterType="java.util.HashMap"
+		useGeneratedKeys="true" keyProperty="itemNo" keyColumn="itemNo">
+		insert into play_list_detail(playListNo, title, singer, songNo1, songNo2, createdDate)
+		values(#{playListNo}, #{title}, #{singer}, #{songNo1}, #{songNo2}, NOW())
+		<selectKey keyProperty="itemNo" resultType="String" order="AFTER">
+			select LAST_INSERT_ID();
+		</selectKey>
+	</insert>
+	
 </mapper>

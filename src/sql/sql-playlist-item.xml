@@ -5,7 +5,11 @@
 <mapper namespace="com.tessoft.karaoke.playlist.item">
 
 	<select id="getPlayListItemDetail" resultType="java.util.HashMap">
-		select * from play_list_detail
+		select *, s1.videoID as videoID1
+		, s2.videoID as videoID2 
+		from play_list_detail pd
+			left outer join song s1 on pd.songNo1 = s1.songNo
+			left outer join song s2 on pd.songNo2 = s2.songNo
 		where itemNo=#{itemNo}
 	</select>
 	
@@ -32,5 +36,17 @@
 			select LAST_INSERT_ID();
 		</selectKey>
 	</insert>
+	
+	<update id="updateVideoIDAsNull" parameterType="java.util.HashMap">
+		update play_list_detail
+		set createdDate=createdDate 
+		<if test="type==1">
+			, songNo1 = NULL
+		</if>
+		<if test="type==2">
+			, songNo2 = NULL
+		</if>
+		where itemNo=#{itemNo}
+	</update>
 	
 </mapper>

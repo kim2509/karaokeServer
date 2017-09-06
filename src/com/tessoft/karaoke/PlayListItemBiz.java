@@ -38,4 +38,11 @@ public class PlayListItemBiz extends CommonBiz {
 		int dbResult = sqlSession.insert("com.tessoft.karaoke.playlist.item.insertSong", param );
 		return param;
 	}
+	
+	public int updateVideoIDAsNull(HashMap param) {
+		// TODO Auto-generated method stub
+		int dbResult = sqlSession.update("com.tessoft.karaoke.playlist.item.updateVideoIDAsNull", param );
+		return dbResult;
+	}
+	
 }

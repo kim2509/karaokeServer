@@ -103,6 +103,34 @@ public class PlayListItemController extends BaseController{
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@RequestMapping( value ="/playlistItem/updateVideoIDAsNull.do")
+	public @ResponseBody APIResponse updateVideoIDAsNull(HttpServletRequest request, @RequestBody String bodyString)
+	{
+		APIResponse response = new APIResponse();
+		
+		try
+		{
+			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
+			
+			HashMap data = new HashMap();
+			
+			int dbResult = PlayListItemBiz.getInstance(sqlSession).updateVideoIDAsNull(param);
+			
+			data.put("dbResult", String.valueOf( dbResult ) );
+			
+			response.setData(data);
+		}
+		catch( Exception ex )
+		{
+			response.setResCode( ErrorCode.UNKNOWN_ERROR );
+			response.setResMsg("노래정보를 업데이트 하는 도중에 오류가 발생했습니다.");
+			logger.error( ex );
+		}
+		
+		return response;
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@RequestMapping( value ="/playlistItem/add.do")
 	public @ResponseBody APIResponse add(HttpServletRequest request, @RequestBody String bodyString)
 	{

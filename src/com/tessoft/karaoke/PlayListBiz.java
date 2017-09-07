@@ -76,24 +76,6 @@ public class PlayListBiz extends CommonBiz {
 		return song;
 	}
 	
-	public HashMap selectSongByVideoID(HashMap param)
-	{
-		HashMap song = sqlSession.selectOne("com.tessoft.karaoke.playlist.selectSongByVideoID", param);
-		return song;
-	}
-	
-	public int insertSongItem(HashMap param) {
-		// TODO Auto-generated method stub
-		int dbResult = sqlSession.insert("com.tessoft.karaoke.playlist.insertSongItem", param );
-		return dbResult;
-	}
-	
-	public int insertSongPlayHistory(HashMap param) {
-		// TODO Auto-generated method stub
-		int dbResult = sqlSession.insert("com.tessoft.karaoke.playlist.insertSongPlayHistory", param );
-		return dbResult;
-	}
-	
 	public int updatePlayListItemType(HashMap param) {
 		// TODO Auto-generated method stub
 		int dbResult = sqlSession.update("com.tessoft.karaoke.playlist.updatePlayListItemType", param );

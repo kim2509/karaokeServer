@@ -3,6 +3,7 @@ package com.tessoft.karaoke;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -474,8 +475,26 @@ public class PlayListController extends BaseController{
 			
 			List<HashMap> items = (List<HashMap>) resultItem.get("items");
             
+			ArrayList<HashMap> resultItems = new ArrayList<HashMap>();
+			for ( int i = 0; i < items.size(); i++ ) {
+				HashMap item = items.get(i);
+				HashMap idElement = (HashMap) item.get("id");
+                String videoID = Util.getStringFromHash(idElement, "videoId");
+                
+	            HashMap snippet = (HashMap) item.get("snippet");
+	            HashMap thumbnails = (HashMap) snippet.get("thumbnails");
+	            HashMap medium = (HashMap) thumbnails.get("default");
+	            String url = Util.getStringFromHash(medium, "url");
+	            
+				HashMap tmp = new HashMap();
+				tmp.put("videoID", videoID );
+				tmp.put("title", Util.getStringFromHash(snippet, "title"));
+				tmp.put("thumbnailURL", url );
+				resultItems.add(tmp);
+			}
+			
 			HashMap info = new HashMap();
-			info.put("items", items );
+			info.put("items", resultItems );
 			
 			response.setData(info);
 		}
@@ -483,58 +502,6 @@ public class PlayListController extends BaseController{
 		{
 			response.setResCode( ErrorCode.UNKNOWN_ERROR );
 			response.setResMsg("youtube 검색도중 오류가 발생했습니다.");
-			logger.error( ex );
-		}
-		
-		return response;
-	}
-	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@RequestMapping( value ="/playlist/updateItem.do")
-	public @ResponseBody APIResponse updateItem(HttpServletRequest request, @RequestBody String bodyString)
-	{
-		APIResponse response = new APIResponse();
-		
-		try
-		{
-			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
-			HashMap info = new HashMap();
-			
-			if ( Util.isEmptyForKey(param, "playListNo") )
-			{
-				response.setResCode( ErrorCode.INVALID_INPUT );
-				response.setResMsg("요청값이 올바르지 않습니다.");
-			}
-			else
-			{
-				String type = Util.getStringFromHash(param, "type");
-				if ("1".equals(type)) 
-					param.put("videoID", Util.getStringFromHash(param, "videoID1"));
-				else
-					param.put("videoID", Util.getStringFromHash(param, "videoID2"));
-				
-				HashMap song = PlayListBiz.getInstance(sqlSession).selectSongByVideoID(param);
-				if ( song == null )
-					PlayListBiz.getInstance(sqlSession).insertSongItem(param);
-				else
-					param.put("songNo", Util.getStringFromHash(song, "songNo"));
-				
-				PlayListBiz.getInstance(sqlSession).insertSongPlayHistory(param);
-				
-				if ("1".equals(type))
-					param.put("songNo1", Util.getStringFromHash(param, "songNo"));
-				else
-					param.put("songNo2", Util.getStringFromHash(param, "songNo"));
-				
-				PlayListBiz.getInstance(sqlSession).updatePlayListItemType(param);
-			}
-
-			response.setData(info);
-		}
-		catch( Exception ex )
-		{
-			response.setResCode( ErrorCode.UNKNOWN_ERROR );
-			response.setResMsg("updateItem 도중에 오류가 발생했습니다.");
 			logger.error( ex );
 		}
 		

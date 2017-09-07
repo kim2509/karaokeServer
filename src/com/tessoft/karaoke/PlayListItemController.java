@@ -164,4 +164,60 @@ public class PlayListItemController extends BaseController{
 		
 		return response;
 	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@RequestMapping( value ="/playlistItem/updateVideoID.do")
+	public @ResponseBody APIResponse updateVideoID(HttpServletRequest request, @RequestBody String bodyString)
+	{
+		APIResponse response = new APIResponse();
+		
+		try
+		{
+			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
+			HashMap info = new HashMap();
+			
+			if ( Util.isEmptyForKey(param, "playListNo") )
+			{
+				response.setResCode( ErrorCode.INVALID_INPUT );
+				response.setResMsg("요청값이 올바르지 않습니다.");
+			}
+			else
+			{
+				String type = Util.getStringFromHash(param, "type");
+				if ("1".equals(type)) 
+					param.put("videoID", Util.getStringFromHash(param, "videoID1"));
+				else
+					param.put("videoID", Util.getStringFromHash(param, "videoID2"));
+				
+				HashMap song = SongBiz.getInstance(sqlSession).selectSongByVideoID(param);
+				if ( song == null )
+					SongBiz.getInstance(sqlSession).insertSongItem(param);
+				else {
+					param.put("songNo", Util.getStringFromHash(song, "songNo"));
+					
+					if ( !Util.isEmptyForKey(param, "thumbnailURL"))
+						SongBiz.getInstance(sqlSession).updateThumbnailURL(param);
+				}
+				
+				SongBiz.getInstance(sqlSession).insertSongPlayHistory(param);
+				
+				if ("1".equals(type))
+					param.put("songNo1", Util.getStringFromHash(param, "songNo"));
+				else
+					param.put("songNo2", Util.getStringFromHash(param, "songNo"));
+				
+				PlayListBiz.getInstance(sqlSession).updatePlayListItemType(param);
+			}
+
+			response.setData(info);
+		}
+		catch( Exception ex )
+		{
+			response.setResCode( ErrorCode.UNKNOWN_ERROR );
+			response.setResMsg("updateItem 도중에 오류가 발생했습니다.");
+			logger.error( ex );
+		}
+		
+		return response;
+	}
 }

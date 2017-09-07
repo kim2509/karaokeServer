@@ -33,4 +33,28 @@ public class SongBiz extends CommonBiz {
 		List<HashMap> songList = sqlSession.selectList("com.tessoft.karaoke.song.getPopularList", param);
 		return songList;
 	}
+	
+	public int insertSongItem(HashMap param) {
+		// TODO Auto-generated method stub
+		int dbResult = sqlSession.insert("com.tessoft.karaoke.song.insertSongItem", param );
+		return dbResult;
+	}
+	
+	public HashMap selectSongByVideoID(HashMap param)
+	{
+		HashMap song = sqlSession.selectOne("com.tessoft.karaoke.song.selectSongByVideoID", param);
+		return song;
+	}
+	
+	public int updateThumbnailURL(HashMap param) {
+		// TODO Auto-generated method stub
+		int dbResult = sqlSession.insert("com.tessoft.karaoke.song.updateThumbnailURL", param );
+		return dbResult;
+	}
+	
+	public int insertSongPlayHistory(HashMap param) {
+		// TODO Auto-generated method stub
+		int dbResult = sqlSession.insert("com.tessoft.karaoke.song.insertSongPlayHistory", param );
+		return dbResult;
+	}
 }

@@ -10,15 +10,40 @@
 	</select>
 	
 	<select id="getPopularList" resultType="java.util.HashMap" parameterType="HashMap">
-		select s.*,sh.playCount  from song s
+		select s.*,sh.playCount 
+		from song s
 		left outer join (
 			select songNo, count(songNo) as playCount
 			from song_play_history
 			group by songNo
 		) sh on s.songNo = sh.songNo
 		where s.type=#{type}
-		order by sh.playCount desc
+		order by sh.playCount desc, s.createdDate desc
 		limit 0, 100;
 	</select>
 
+	<insert id="insertSongItem" parameterType="java.util.HashMap"
+		useGeneratedKeys="true" keyProperty="songNo" keyColumn="songNo">
+		insert into song(videoID, title, type, thumbnailURL, createdDate) values(#{videoID}, #{title}, #{type}, #{thumbnailURL}, NOW());
+		<selectKey keyProperty="songNo" resultType="String" order="AFTER">
+			select LAST_INSERT_ID();
+		</selectKey>
+	</insert>
+	
+	<select id="selectSongByVideoID" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+		select *
+		from song
+		where videoID=#{videoID}
+	</select>
+	
+	<update id="updateThumbnailURL" parameterType="java.util.HashMap">
+		update song
+		set thumbnailURL=#{thumbnailURL}
+		where songNo=#{songNo}
+	</update>
+	
+	<insert id="insertSongPlayHistory" parameterType="java.util.HashMap">
+		insert into song_play_history(songNo, tempUserNo, createdDate) values(#{songNo},#{tempUserNo},NOW());
+	</insert>
+	
 </mapper>

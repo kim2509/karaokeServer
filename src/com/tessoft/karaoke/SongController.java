@@ -79,4 +79,37 @@ public class SongController extends BaseController{
 		
 		return response;
 	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@RequestMapping( value ="/song/updatePlayHistory.do")
+	public @ResponseBody APIResponse updatePlayHistory(HttpServletRequest request, @RequestBody String bodyString)
+	{
+		APIResponse response = new APIResponse();
+		
+		try
+		{
+			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
+			HashMap info = new HashMap();
+			
+			if ( Util.isEmptyForKey(param, "songNo") )
+			{
+				response.setResCode( ErrorCode.INVALID_INPUT );
+				response.setResMsg("요청값이 올바르지 않습니다.");
+			}
+			else
+			{
+				SongBiz.getInstance(sqlSession).insertSongPlayHistory(param);				
+			}
+
+			response.setData(info);
+		}
+		catch( Exception ex )
+		{
+			response.setResCode( ErrorCode.UNKNOWN_ERROR );
+			response.setResMsg("updatePlayHistory 도중에 오류가 발생했습니다.");
+			logger.error( ex );
+		}
+		
+		return response;
+	}
 }

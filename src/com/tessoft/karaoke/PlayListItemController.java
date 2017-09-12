@@ -140,14 +140,26 @@ public class PlayListItemController extends BaseController{
 		{
 			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
 			
-			if ( Util.isEmptyForKey(param, "playListNo") )
+			if ( Util.isEmptyForKey(param, "tempUserNo") )
 			{
 				response.setResCode( ErrorCode.INVALID_INPUT );
 				response.setResMsg("요청값이 올바르지 않습니다.");
 			}
 			else
 			{
-				PlayListItemBiz.getInstance(sqlSession).addSong(param);
+				if ( Util.isEmptyForKey(param, "playListNo") ) {
+					List<HashMap> myPlayList = PlayListBiz.getInstance(sqlSession).getPlayListByUser(param);
+					for ( int i = 0; i < myPlayList.size(); i++ ) {
+						if ("기본".equals( Util.getStringFromHash(myPlayList.get(i), "Name"))){
+							param.put("playListNo", Util.getStringFromHash(myPlayList.get(i), "playListNo"));
+							break;
+						}
+					}
+				}
+				
+				HashMap existingItem = PlayListItemBiz.getInstance(sqlSession).getItemByTitleNSinger(param);
+				if ( existingItem == null )
+					PlayListItemBiz.getInstance(sqlSession).addSong(param);
 			}
 			
 			HashMap info = new HashMap();
@@ -206,7 +218,7 @@ public class PlayListItemController extends BaseController{
 				else
 					param.put("songNo2", Util.getStringFromHash(param, "songNo"));
 				
-				PlayListBiz.getInstance(sqlSession).updatePlayListItemType(param);
+				PlayListItemBiz.getInstance(sqlSession).updatePlayListItemType(param);
 			}
 
 			response.setData(info);

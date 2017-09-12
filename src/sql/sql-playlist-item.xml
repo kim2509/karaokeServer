@@ -28,6 +28,12 @@
 		where itemNo=#{itemNo}
 	</update>
 	
+	<select id="getItemByTitleNSinger" parameterType="HashMap" resultType="java.util.HashMap">
+		select * from play_list_detail
+		where playListNo=#{playListNo} and title=#{title}
+		and ifnull(singer,'')=''
+	</select>
+	
 	<insert id="insertSong" parameterType="java.util.HashMap"
 		useGeneratedKeys="true" keyProperty="itemNo" keyColumn="itemNo">
 		insert into play_list_detail(playListNo, title, singer, songNo1, songNo2, createdDate)
@@ -47,6 +53,20 @@
 			, songNo2 = NULL
 		</if>
 		where itemNo=#{itemNo}
+	</update>
+	
+	<update id="updatePlayListItemType" parameterType="java.util.HashMap">
+		update play_list_detail pd
+			left outer join play_list_master pm on pm.playListNo=pd.playListNo
+		set pd.createdDate = pd.createdDate
+		<if test="type == 1">
+			, pd.songNo1 = #{songNo1}
+		</if> 
+		<if test="type == 2">
+			, pd.songNo2 = #{songNo2}
+		</if> 
+		where pd.playListNo=#{playListNo} and pd.itemNo=#{itemNo}
+			and pm.tempUserNo=#{tempUserNo}
 	</update>
 	
 </mapper>

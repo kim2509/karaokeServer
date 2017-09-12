@@ -93,13 +93,14 @@ public class SongController extends BaseController{
 			
 			if ( Util.isEmptyForKey(param, "songNo") )
 			{
-				response.setResCode( ErrorCode.INVALID_INPUT );
-				response.setResMsg("요청값이 올바르지 않습니다.");
+				HashMap song = SongBiz.getInstance(sqlSession).selectSongByVideoID(param);
+				if ( song == null )
+					SongBiz.getInstance(sqlSession).insertSongItem(param);
+				else 
+					param.put("songNo", Util.getStringFromHash(song, "songNo"));
 			}
-			else
-			{
-				SongBiz.getInstance(sqlSession).insertSongPlayHistory(param);				
-			}
+
+			SongBiz.getInstance(sqlSession).insertSongPlayHistory(param);
 
 			response.setData(info);
 		}
@@ -107,6 +108,34 @@ public class SongController extends BaseController{
 		{
 			response.setResCode( ErrorCode.UNKNOWN_ERROR );
 			response.setResMsg("updatePlayHistory 도중에 오류가 발생했습니다.");
+			logger.error( ex );
+		}
+		
+		return response;
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@RequestMapping( value ="/song/search.do")
+	public @ResponseBody APIResponse search(HttpServletRequest request, @RequestBody String bodyString)
+	{
+		APIResponse response = new APIResponse();
+		
+		try
+		{
+			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
+			
+			HashMap data = new HashMap();
+			
+			List<HashMap> songList = SongBiz.getInstance(sqlSession).getSongByKeyword(param);
+			
+			data.put("songList", songList );
+			
+			response.setData(data);
+		}
+		catch( Exception ex )
+		{
+			response.setResCode( ErrorCode.UNKNOWN_ERROR );
+			response.setResMsg("노래정보를 읽어오는 도중에 오류가 발생했습니다.");
 			logger.error( ex );
 		}
 		

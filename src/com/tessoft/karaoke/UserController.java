@@ -45,4 +45,22 @@ public class UserController extends BaseController{
 		
 		return response;
 	}
+	
+	@RequestMapping( value ="/user/terms.do")
+	public String terms( HttpServletRequest request, String version, String type )
+	{
+		String view = "";
+		try
+		{
+			
+			view = "terms/user_terms";
+			
+		}
+		catch( Exception ex )
+		{
+			logger.error( ex );
+		}
+
+		return view;
+	}
 }

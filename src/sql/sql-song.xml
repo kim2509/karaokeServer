@@ -43,7 +43,24 @@
 	</update>
 	
 	<insert id="insertSongPlayHistory" parameterType="java.util.HashMap">
-		insert into song_play_history(songNo, tempUserNo, createdDate) values(#{songNo},#{tempUserNo},NOW());
+		insert into song_play_history(songNo, tempUserNo, itemNo, playListNo, createdDate) 
+		values(#{songNo},#{tempUserNo},#{itemNo}, #{playListNo}, NOW());
 	</insert>
+	
+	<select id="getSongByKeyword" resultType="java.util.HashMap">
+		select s.*, sh.playCount
+		from song s
+		left outer join (
+			select songNo, count(songNo) as playCount
+			from song_play_history
+			group by songNo
+		) sh on s.songNo = sh.songNo
+		where s.title like concat('%',#{keyword}, '%')
+		<if test="type != null and type != ''">
+			and s.type=#{type}
+		</if>
+		order by s.createdDate desc
+		limit 0, 20;
+	</select>
 	
 </mapper>

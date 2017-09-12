@@ -27,6 +27,12 @@ public class PlayListItemBiz extends CommonBiz {
 		return itemInfo;
 	}
 	
+	public HashMap getItemByTitleNSinger(HashMap param)
+	{
+		HashMap itemInfo = sqlSession.selectOne("com.tessoft.karaoke.playlist.item.getItemByTitleNSinger", param);
+		return itemInfo;
+	}
+	
 	public int updatePlayListItem(HashMap param) {
 		// TODO Auto-generated method stub
 		int dbResult = sqlSession.update("com.tessoft.karaoke.playlist.item.updatePlayListItem", param );
@@ -45,4 +51,9 @@ public class PlayListItemBiz extends CommonBiz {
 		return dbResult;
 	}
 	
+	public int updatePlayListItemType(HashMap param) {
+		// TODO Auto-generated method stub
+		int dbResult = sqlSession.update("com.tessoft.karaoke.playlist.item.updatePlayListItemType", param );
+		return dbResult;
+	}
 }

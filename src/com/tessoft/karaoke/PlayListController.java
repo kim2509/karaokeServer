@@ -162,7 +162,8 @@ public class PlayListController extends BaseController{
 			else
 			{
 				PlayListBiz.getInstance(sqlSession).updatePlaylistShare(param);
-				info.put("item", param);
+				HashMap playList = PlayListBiz.getInstance(sqlSession).getPlayListDetail(param);
+				info.put("item", playList );
 			}
 			
 			response.setData(info);

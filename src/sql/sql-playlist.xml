@@ -14,20 +14,49 @@
 	</insert>
 	
 	<select id="getAllPlayList" resultType="java.util.HashMap">
-		select pm.* from play_list_master pm
+		select pm.*, pd.itemCount , ifnull(ph.playCount,0) as playCount
+		from play_list_master pm
 			left outer join (
 				select playListNo, count(playListNo) as itemCount
 				from play_list_detail
 				group by playListNo
 			) pd on pm.playListNo=pd.playListNo
+			left outer join (
+				select playListNo, ifnull(count(playListNo),0) as playCount
+				from (
+				select *
+				from song_play_history
+				where playListNo is not null
+				group by playListNo, tempUserNo
+				) A
+				group by playListNo
+			) ph on pm.playListNo=ph.playListNo
 		where pm.shareYN='Y'
 		and pd.itemCount &gt;= 10
+		order by ph.playCount desc, pm.createdDate desc
 		limit 0,100;
 	</select>
 	
 	<select id="getPlayListByUser" resultType="java.util.HashMap">
-		select * from play_list_master
-		where tempUserNo=#{tempUserNo}
+		select pm.* , pd.itemCount, ifnull(ph.playCount,0) as playCount
+		from play_list_master pm
+		left outer join (
+				select playListNo, count(playListNo) as itemCount
+				from play_list_detail
+				group by playListNo
+			) pd on pm.playListNo=pd.playListNo
+		left outer join (
+			select playListNo, ifnull(count(playListNo),0) as playCount
+			from (
+			select *
+			from song_play_history
+			where playListNo is not null
+			group by playListNo, tempUserNo
+			) A
+			group by playListNo
+		) ph on pm.playListNo=ph.playListNo
+		where pm.tempUserNo=#{tempUserNo}
+		order by pm.createdDate asc
 	</select>
 	
 	<select id="getPlayListDetail" resultType="java.util.HashMap">
@@ -38,7 +67,7 @@
 	<select id="getPlayListSongs" resultType="java.util.HashMap">
 		select pd.*
 		, s.videoID as videoID1, s2.videoID as videoID2
-		, s.playCount as playCount1, s2.playCount as playCount2
+		, ifnull(s.playCount,0) as playCount1, ifnull(s2.playCount,0) as playCount2
 		from play_list_detail pd
 			left outer join (
 				select ss.songNo, ss.videoID, count(sh.songNo) as playCount 
@@ -73,10 +102,13 @@
 	</delete>
 	
 	<select id="searchMySong" resultType="java.util.HashMap" parameterType="java.util.HashMap">
-		select pd.*
+		select pd.*, s1.videoID as videoID1, s2.videoID as videoID2
 		from play_list_detail pd
 			left outer join play_list_master pm on pm.playListNo=pd.playListNo
+			left outer join song s1 on s1.songNo=pd.songNo1
+			left outer join song s2 on s2.songNo=pd.songNo2
 		where pm.tempUserNo=#{tempUserNo} and replace(pd.title,' ','') like concat('%',#{keyword},'%')
+		and pm.playListNo=#{playListNo}
 	</select>
 	
 	<select id="searchSong" resultType="java.util.HashMap" parameterType="java.util.HashMap">
@@ -84,18 +116,6 @@
 		from play_list_detail
 		where playListNo= #{playListNo} and title=#{title}
 	</select>
-	
-	<update id="updatePlayListItemType" parameterType="java.util.HashMap">
-		update play_list_detail
-		set createdDate = createdDate
-		<if test="type == 1">
-			, songNo1 = #{songNo1}
-		</if> 
-		<if test="type == 2">
-			, songNo2 = #{songNo2}
-		</if> 
-		where playListNo=#{playListNo} and itemNo=#{itemNo}
-	</update>
 	
 	<update id="deletePlayListItem" parameterType="java.util.HashMap">
 		delete from play_list_detail

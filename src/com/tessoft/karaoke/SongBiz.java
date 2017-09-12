@@ -57,4 +57,10 @@ public class SongBiz extends CommonBiz {
 		int dbResult = sqlSession.insert("com.tessoft.karaoke.song.insertSongPlayHistory", param );
 		return dbResult;
 	}
+	
+	public List<HashMap> getSongByKeyword(HashMap param)
+	{
+		List<HashMap> songList = sqlSession.selectList("com.tessoft.karaoke.song.getSongByKeyword", param);
+		return songList;
+	}
 }

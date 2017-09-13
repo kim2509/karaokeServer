@@ -294,6 +294,7 @@ public class PlayListController extends BaseController{
 				if ( !bBasicExists )
 				{
 					param.put("Name", "기본");
+					param.put("shareYN", "N");
 					PlayListBiz.getInstance(sqlSession).createNewPlayList(param);
 					myPlayList.add(param);
 				}
@@ -382,6 +383,40 @@ public class PlayListController extends BaseController{
 		{
 			response.setResCode( ErrorCode.UNKNOWN_ERROR );
 			response.setResMsg("Play list 를 읽어오는 도중에 오류가 발생했습니다.");
+			logger.error( ex );
+		}
+		
+		return response;
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@RequestMapping( value ="/playlist/searchPlayListSong.do")
+	public @ResponseBody APIResponse searchPlayListSong(HttpServletRequest request, @RequestBody String bodyString)
+	{
+		APIResponse response = new APIResponse();
+		
+		try
+		{
+			HashMap param = mapper.readValue(bodyString, new TypeReference<HashMap>(){});
+			HashMap info = new HashMap();
+			
+			if ( Util.isEmptyForKey(param, "playListNo") )
+			{
+				response.setResCode( ErrorCode.INVALID_INPUT );
+				response.setResMsg("요청값이 올바르지 않습니다.");
+			}
+			else
+			{
+				List<HashMap> songList = PlayListBiz.getInstance(sqlSession).searchPlayListSong(param);
+				info.put("songList", songList);
+			}
+
+			response.setData(info);
+		}
+		catch( Exception ex )
+		{
+			response.setResCode( ErrorCode.UNKNOWN_ERROR );
+			response.setResMsg("my song list 를 읽어오는 도중에 오류가 발생했습니다.");
 			logger.error( ex );
 		}
 		

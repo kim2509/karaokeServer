@@ -50,7 +50,7 @@
 			from (
 			select *
 			from song_play_history
-			where playListNo is not null
+			where playListNo is not null and tempUserNo=#{tempUserNo}
 			group by playListNo, tempUserNo
 			) A
 			group by playListNo
@@ -101,8 +101,20 @@
 		where keyword = #{keyword} and expireDate &lt; NOW();
 	</delete>
 	
+	<select id="searchPlayListSong" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+		select pd.*, s1.videoID as videoID1, s2.videoID as videoID2
+		, s1.thumbnailURL as thumbnailURL1, s2.thumbnailURL as thumbnailURL2
+		from play_list_detail pd
+			left outer join play_list_master pm on pm.playListNo=pd.playListNo
+			left outer join song s1 on s1.songNo=pd.songNo1
+			left outer join song s2 on s2.songNo=pd.songNo2
+		where replace(pd.title,' ','') like concat('%',#{keyword},'%')
+		and pm.playListNo=#{playListNo}
+	</select>
+	
 	<select id="searchMySong" resultType="java.util.HashMap" parameterType="java.util.HashMap">
 		select pd.*, s1.videoID as videoID1, s2.videoID as videoID2
+		, s1.thumbnailURL as thumbnailURL1, s2.thumbnailURL as thumbnailURL2
 		from play_list_detail pd
 			left outer join play_list_master pm on pm.playListNo=pd.playListNo
 			left outer join song s1 on s1.songNo=pd.songNo1

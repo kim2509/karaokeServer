@@ -64,6 +64,12 @@ public class PlayListBiz extends CommonBiz {
 		return data;
 	}
 	
+	public List<HashMap> searchPlayListSong(HashMap param)
+	{
+		List<HashMap> songList = sqlSession.selectList("com.tessoft.karaoke.playlist.searchPlayListSong", param);
+		return songList;
+	}
+	
 	public List<HashMap> searchMySong(HashMap param)
 	{
 		List<HashMap> songList = sqlSession.selectList("com.tessoft.karaoke.playlist.searchMySong", param);

@@ -85,6 +85,7 @@ public class PlayListController extends BaseController{
 			if ( !bBasicExists )
 			{
 				param.put("Name", "기본");
+				param.put("shareYN", "N");
 				PlayListBiz.getInstance(sqlSession).createNewPlayList(param);
 				myPlayList.add(param);
 			}

@@ -477,17 +477,20 @@ public class PlayListController extends BaseController{
 			PlayListBiz.getInstance(sqlSession).deleteExpiredSearchHistoryByKeyword(param);
 			List<HashMap> searchHistory = PlayListBiz.getInstance(sqlSession).getSearchHistoryByKeyword(param);
 			
-			StringBuilder resultText = new StringBuilder();
+			HashMap info = new HashMap();
 			
 			if ( searchHistory != null && searchHistory.size() > 0 )
 			{
-				String tmp = Util.getStringFromHash( searchHistory.get(0), "result");
-				resultText.append(tmp);
+				String resultString = Util.getStringFromHash( searchHistory.get(0), "result");
+//				String resultString = tmp.replaceAll("&apos;", "\\'");
+				
+				List<HashMap> resultItems = mapper.readValue( resultString, new TypeReference<List<HashMap>>(){});
+				info.put("items", resultItems );
 			}
 			else
 			{
 				String url = "https://www.googleapis.com/youtube/v3/search?part=id,snippet&q=" + URLEncoder.encode( title , "utf8") +
-	                    "&type=video&key=" + YoutubeApiKey;
+	                    "&type=video&maxResults=20&key=" + YoutubeApiKey;
 				
 				HttpClient client = HttpClientBuilder.create().build();
 				HttpGet req = new HttpGet(url);
@@ -499,39 +502,50 @@ public class PlayListController extends BaseController{
 				BufferedReader rd = new BufferedReader(
 						new InputStreamReader(res.getEntity().getContent(), "utf-8"));
 
+				StringBuilder resultText = new StringBuilder();
 				String line = "";
 				while ((line = rd.readLine()) != null) {
 					resultText.append(line);
 				}
 				
-				param.put("result", resultText.toString());
-				PlayListBiz.getInstance(sqlSession).insertSearch(param);
-			}
-			
-			HashMap resultItem = mapper.readValue(resultText.toString(), new TypeReference<HashMap>(){});
-			
-			List<HashMap> items = (List<HashMap>) resultItem.get("items");
-            
-			ArrayList<HashMap> resultItems = new ArrayList<HashMap>();
-			for ( int i = 0; i < items.size(); i++ ) {
-				HashMap item = items.get(i);
-				HashMap idElement = (HashMap) item.get("id");
-                String videoID = Util.getStringFromHash(idElement, "videoId");
-                
-	            HashMap snippet = (HashMap) item.get("snippet");
-	            HashMap thumbnails = (HashMap) snippet.get("thumbnails");
-	            HashMap medium = (HashMap) thumbnails.get("default");
-	            String url = Util.getStringFromHash(medium, "url");
+				HashMap youtubeResult = mapper.readValue(resultText.toString(), new TypeReference<HashMap>(){});
+				
+				List<HashMap> youtubeItems = (List<HashMap>) youtubeResult.get("items");
 	            
-				HashMap tmp = new HashMap();
-				tmp.put("videoID", videoID );
-				tmp.put("title", Util.getStringFromHash(snippet, "title"));
-				tmp.put("thumbnailURL", url );
-				resultItems.add(tmp);
+				ArrayList<HashMap> tmpItems = new ArrayList<HashMap>();
+				
+				for ( int i = 0; i < youtubeItems.size(); i++ ) {
+					
+					HashMap item = youtubeItems.get(i);
+					HashMap idElement = (HashMap) item.get("id");
+	                String videoID = Util.getStringFromHash(idElement, "videoId");
+	                
+		            HashMap snippet = (HashMap) item.get("snippet");
+		            HashMap thumbnails = (HashMap) snippet.get("thumbnails");
+		            HashMap medium = (HashMap) thumbnails.get("default");
+		            String thumbnailURL = Util.getStringFromHash(medium, "url");
+		            
+					HashMap tmp = new HashMap();
+					tmp.put("videoID", videoID );
+					tmp.put("title", Util.getStringFromHash(snippet, "title"));
+					tmp.put("thumbnailURL", thumbnailURL );
+					tmpItems.add(tmp);
+					
+				}
+				
+				String resultString = mapper.writeValueAsString( tmpItems );
+//				resultString = resultString.replaceAll("\\'", "&apos;");
+				
+				param.put("result", resultString );
+				
+				try{
+					PlayListBiz.getInstance(sqlSession).insertSearch(param);
+				} catch( Exception ex ){
+					logger.error("search song insert error:" + ex.getMessage() );
+				}
+				
+				info.put("items", tmpItems );
 			}
-			
-			HashMap info = new HashMap();
-			info.put("items", resultItems );
 			
 			response.setData(info);
 		}

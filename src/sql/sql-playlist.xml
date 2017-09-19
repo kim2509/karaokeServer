@@ -119,7 +119,7 @@
 			left outer join play_list_master pm on pm.playListNo=pd.playListNo
 			left outer join song s1 on s1.songNo=pd.songNo1
 			left outer join song s2 on s2.songNo=pd.songNo2
-		where pm.tempUserNo=#{tempUserNo} and replace(pd.title,' ','') like concat('%',#{keyword},'%')
+		where pm.tempUserNo=#{tempUserNo} and replace(pd.title,' ','') like concat('%',replace(#{keyword},' ',''),'%')
 		and pm.playListNo=#{playListNo}
 	</select>
 	

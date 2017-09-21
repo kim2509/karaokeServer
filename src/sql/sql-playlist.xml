@@ -109,6 +109,9 @@
 			left outer join song s1 on s1.songNo=pd.songNo1
 			left outer join song s2 on s2.songNo=pd.songNo2
 		where replace(pd.title,' ','') like concat('%', replace(#{keyword},' ',''),'%')
+		<if test="singer != null and singer != ''">
+			and replace(pd.singer,' ','') like concat('%', replace(#{singer},' ',''),'%')
+		</if>
 		and pm.playListNo=#{playListNo}
 	</select>
 	
@@ -138,6 +141,7 @@
 		update play_list_master
 		set shareYN=#{shareYN}
 		, Name=#{Name}
+		, shareDate = NOW()
 		where playListNo=#{playListNo} and tempUserNo=#{tempUserNo}
 	</update>
 	

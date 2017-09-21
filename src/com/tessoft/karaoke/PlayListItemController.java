@@ -45,9 +45,12 @@ public class PlayListItemController extends BaseController{
 			
 			String playListNo = Util.getStringFromHash(itemInfo, "playListNo");
 			
+			data.put("editableYN", "N");
+			
 			for ( int i = myPlayList.size() - 1; i >= 0; i-- ) {
 				if ( playListNo.equals( Util.getStringFromHash( myPlayList.get(i), "playListNo") ) ) {
 					myPlayList.remove(i);
+					data.put("editableYN", "Y");
 				}
 			}
 			

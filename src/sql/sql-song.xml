@@ -19,7 +19,7 @@
 		) sh on s.songNo = sh.songNo
 		where s.type=#{type}
 		order by sh.playCount desc, s.createdDate desc
-		limit 0, 100;
+		limit 0, 200;
 	</select>
 
 	<insert id="insertSongItem" parameterType="java.util.HashMap"

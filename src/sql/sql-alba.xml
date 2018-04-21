@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.tessoft.alba">
+
+	<select id="selectAllWorkers" resultType="java.util.HashMap">
+		SELECT *
+		FROM alba_worker
+		ORDER BY createdDate
+	</select>
+	
+	<select id="selectRoomList" resultType="java.util.HashMap">
+		SELECT *
+		FROM alba_room
+	</select>
+	
+	<select id="selectRoomStatus" resultType="java.util.HashMap">
+	<![CDATA[
+		SELECT A.*
+		, CASE WHEN B.worker_id IS NULL THEN 'N' ELSE 'Y' END AS cleanYN
+		FROM (
+		 
+			SELECT roomNo, hasStandMike, jobNo, jobName, jobType FROM alba_room ar
+				CROSS JOIN alba_job aj ON aj.jobType = 1
+			WHERE aj.jobNo <> 4
+		 
+			UNION ALL
+		 
+			SELECT roomNo, hasStandMike, jobNo, jobName, jobType FROM alba_room ar
+				CROSS JOIN alba_job aj ON aj.jobType = 1
+			WHERE ar.hasStandMike = 'Y' AND aj.jobNo = 4
+		 
+		) A
+			INNER JOIN (
+			 SELECT jobNo
+			 , CASE WHEN DAYOFWEEK(NOW()) = 1 THEN Sun 
+				WHEN DAYOFWEEK(NOW()) = 2 THEN Mon 
+				WHEN DAYOFWEEK(NOW()) = 3 THEN Tue
+				WHEN DAYOFWEEK(NOW()) = 4 THEN Wed 
+				WHEN DAYOFWEEK(NOW()) = 5 THEN Thu 
+				WHEN DAYOFWEEK(NOW()) = 6 THEN Fri 						
+				WHEN DAYOFWEEK(NOW()) = 7 THEN Sat 
+			 	END weekDay
+			 FROM alba_job_schedule
+			) js ON A.jobNo = js.jobNo AND js.weekDay = 'Y'
+		 
+			LEFT OUTER JOIN (
+				SELECT * FROM alba_job_room_based_history
+				WHERE SUBSTR(createdDate, 1, 10) = SUBSTR(NOW(), 1, 10)
+			) B ON A.roomNo = B.roomNo AND A.jobNo = B.jobNo
+		 
+		ORDER BY RoomNo, jobNo
+	]]>
+	</select>
+	
+	<insert id="insertTempUser" parameterType="java.util.HashMap"
+		useGeneratedKeys="true" keyProperty="tempUserNo" keyColumn="tempUserNo">
+		insert into temp_user(appVersion, createdDate) values(#{appVersion}, NOW())
+		<selectKey keyProperty="tempUserNo" resultType="String" order="AFTER">
+			select LAST_INSERT_ID();
+		</selectKey>
+	</insert>
+	
+	<update id="updateTempUser" parameterType="HashMap">
+		update temp_user
+		set appVersion=#{appVersion}
+		, updatedDate=NOW()
+		where tempUserNo=#{tempUserNo}
+	</update>
+	
+</mapper>

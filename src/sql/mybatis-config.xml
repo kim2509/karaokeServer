@@ -11,6 +11,7 @@ PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
 		<mapper resource="sql/sql-playlist-item.xml"/>
 		<mapper resource="sql/sql-song.xml"/>
 		<mapper resource="sql/sql-user.xml"/>
+		<mapper resource="sql/sql-alba.xml"/>
 		<mapper resource="sql/test.xml"/>
 	</mappers>
 </configuration>

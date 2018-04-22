@@ -1,6 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+<%@ page import="java.util.*"%>
 
+<%
+	List<HashMap> workers = (List<HashMap>) request.getAttribute("workers");
+%>
 <!DOCTYPE html>
 <html>
   <head>
@@ -57,11 +61,13 @@
 			try {
 
 				$('#btnStartCleaning').click(function(){
-                    document.location.href = 'android://openURL?url=' + encodeURIComponent('/karaoke/alba/room.do');
+                    document.location.href = 'android://openURL?url=' 
+                    		+ encodeURIComponent('/karaoke/alba/room.do?workSeq=' + $('#workSeq').html() );
                 });
 
                 $('#btnCheckCashBalance').click(function(){
-                    document.location.href = 'android://openURL?url=' + encodeURIComponent('/karaoke/alba/cash.do');
+                    document.location.href = 'android://openURL?url=' 
+                    		+ encodeURIComponent('/karaoke/alba/cash.do?workSeq=' + $('#workSeq').html() );
                 });
 
 			} catch ( ex ) {
@@ -75,17 +81,82 @@
                 alert('근무자를 선택해 주세요.');
                 return;
             }
+            
+            var param = {"worker_id": $('#workerList').val(), "worker_name": $('#workerList :checked').text() };
 
-            $('#divBeforeLogin').hide();
-            $('#afterLogin').show();
+            jQuery.ajax({
+    			type : "POST",
+    			url : "/karaoke/alba/getWorkSeq.do",
+    			data : JSON.stringify( param ),
+    			dataType : "JSON", // 옵션이므로 JSON으로 받을게 아니면 안써도 됨
+    			contentType : "application/json; charset=UTF-8",
+    			success : function(result) {
+    				// 통신이 성공적으로 이루어졌을 때 이 함수를 타게 된다.
+    				// TODO
+    				try {
+
+    					$('#workerName').html( result.data.worker_name);
+    					$('#workDate').html( result.data.workDate);
+    					$('#workSeq').html( result.data.workSeq);
+    					
+    		            $('#divBeforeLogin').hide();
+    		            $('#afterLogin').show();
+    					
+    				} catch (ex) {
+    					alert(ex.message);
+    				}
+    			},
+    			complete : function(data) {
+    				// 통신이 실패했어도 완료가 되었을 때 이 함수를 타게 된다.
+    				// TODO
+    				bLoading = false;
+    			},
+    			error : function(xhr, status, error) {
+    				alert("에러발생(getCityList)" + error );
+    			}
+    		});
+            
 
         }
 
         function logout(){
 
-            if ( confirm('정말 종료하시겠습니까?') ){
-                $('#divBeforeLogin').show();
-                $('#afterLogin').hide();
+            if ( confirm('정말 종료하시겠습니까?\n창고키, 사무실키 주머니에 없는거 확실한가요?') ){
+            	
+            	var param = {"workSeq": $('#workSeq').html()};
+        		
+        		
+    			jQuery.ajax({
+        			type : "POST",
+        			url : "/karaoke/alba/finishWork.do",
+        			data : JSON.stringify( param ),
+        			dataType : "JSON", // 옵션이므로 JSON으로 받을게 아니면 안써도 됨
+        			contentType : "application/json; charset=UTF-8",
+        			success : function(result) {
+        				// 통신이 성공적으로 이루어졌을 때 이 함수를 타게 된다.
+        				// TODO
+        				try {
+        					
+    						if ( result.resCode == '0000' ) {
+    							$('#divBeforeLogin').show();
+    			                $('#afterLogin').hide();
+        					}
+        					else {
+        					
+        						alert( result.resMsg );
+        						
+        					}
+        					
+        				} catch (ex) {
+        					alert(ex.message);
+        				}
+        			},
+        			error : function(xhr, status, error) {
+        				alert("에러발생(getCityList)" + error );
+        			}
+        		});
+    			
+                
             }
         }
     </script>
@@ -98,9 +169,16 @@
         <div id="divBeforeLogin">
             <select id="workerList">
                 <option value="">본인의 이름을 선택해 주세요.</option>
-                <option value="hyun">강수현</option>
-                <option value="chan">우성찬</option>
-                <option value="boss">사장</option>
+<%                
+			for ( int i = 0; i < workers.size(); i++ ) {
+				HashMap worker = (HashMap) workers.get(i);
+				String id = worker.get("id").toString();
+				String name = worker.get("name").toString();
+%>
+				<option value="<%= id %>"><%= name %></option>
+<%				
+			}
+ %>
             </select>
       		<div id="btnShowRemained" onclick="login();" class="btnFull">근무시작</div>
         </div>
@@ -110,9 +188,9 @@
         <!-- 로그인 후 -->
         <div id="afterLogin" style="display:none;">
             <div id="loginInfo">
-                근무자 : <span id="workerName">강수현</span><br/>
-                근무일자 : <span id="workerName">2018-04-19</span><br/>
-                근무 seq : <span id="workSeq">1</span>
+                근무자 : <span id="workerName"></span><br/>
+                근무일자 : <span id="workDate"></span><br/>
+                근무 seq : <span id="workSeq"></span>
             </div>
 
             <div id="btnStartCleaning" class="btnFull">청소하기</div>

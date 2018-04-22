@@ -10,6 +10,20 @@
 		ORDER BY createdDate
 	</select>
 	
+	<insert id="insertWorkHistory" parameterType="java.util.HashMap"
+		useGeneratedKeys="true" keyProperty="workSeq" keyColumn="workSeq">
+		insert into alba_work_history(worker_id, createdDate) values(#{worker_id},NOW());
+		<selectKey keyProperty="workSeq" resultType="String" order="AFTER">
+			select LAST_INSERT_ID();
+		</selectKey>
+	</insert>
+	
+	<update id="updateWorkHistory" parameterType="java.util.HashMap">
+		update alba_work_history
+		set finishDate = NOW()
+		where work_seq = #{workSeq}
+	</update>
+	
 	<select id="selectRoomList" resultType="java.util.HashMap">
 		SELECT *
 		FROM alba_room
@@ -18,7 +32,7 @@
 	<select id="selectRoomStatus" resultType="java.util.HashMap">
 	<![CDATA[
 		SELECT A.*
-		, CASE WHEN B.worker_id IS NULL THEN 'N' ELSE 'Y' END AS cleanYN
+		, CASE WHEN B.work_seq IS NULL THEN 'N' ELSE 'Y' END AS cleanYN
 		FROM (
 		 
 			SELECT roomNo, hasStandMike, jobNo, jobName, jobType FROM alba_room ar
@@ -47,26 +61,78 @@
 		 
 			LEFT OUTER JOIN (
 				SELECT * FROM alba_job_room_based_history
-				WHERE SUBSTR(createdDate, 1, 10) = SUBSTR(NOW(), 1, 10)
+				WHERE createdDate > date_sub(now(), INTERVAL 12 hour)
 			) B ON A.roomNo = B.roomNo AND A.jobNo = B.jobNo
 		 
 		ORDER BY RoomNo, jobNo
 	]]>
 	</select>
 	
-	<insert id="insertTempUser" parameterType="java.util.HashMap"
-		useGeneratedKeys="true" keyProperty="tempUserNo" keyColumn="tempUserNo">
-		insert into temp_user(appVersion, createdDate) values(#{appVersion}, NOW())
-		<selectKey keyProperty="tempUserNo" resultType="String" order="AFTER">
-			select LAST_INSERT_ID();
-		</selectKey>
+	<select id="selectEtcStatus" resultType="java.util.HashMap">
+	<![CDATA[
+		SELECT A.*
+		, CASE WHEN B.work_seq IS NULL THEN 'N' ELSE 'Y' END AS cleanYN
+		FROM (
+		 
+			SELECT jobNo, jobName, jobType FROM alba_job aj 
+			WHERE aj.jobType = 2
+		 
+		) A
+			INNER JOIN (
+			 SELECT jobNo
+			 , CASE WHEN DAYOFWEEK(NOW()) = 1 THEN Sun 
+				WHEN DAYOFWEEK(NOW()) = 2 THEN Mon 
+				WHEN DAYOFWEEK(NOW()) = 3 THEN Tue
+				WHEN DAYOFWEEK(NOW()) = 4 THEN Wed 
+				WHEN DAYOFWEEK(NOW()) = 5 THEN Thu 
+				WHEN DAYOFWEEK(NOW()) = 6 THEN Fri 						
+				WHEN DAYOFWEEK(NOW()) = 7 THEN Sat 
+			 	END weekDay
+			 FROM alba_job_schedule
+			) js ON A.jobNo = js.jobNo AND js.weekDay = 'Y'
+		 
+			LEFT OUTER JOIN (
+				SELECT * FROM alba_job_hall_based_history
+				WHERE SUBSTR(createdDate, 1, 10) = SUBSTR(NOW(), 1, 10)
+			) B ON A.jobNo = B.jobNo
+		 
+		ORDER BY jobNo
+	]]>
+	</select>
+	
+	<delete id="deleteRoomStatus" parameterType="HashMap">
+		delete from alba_job_room_based_history
+		where roomNo=#{roomNo} and jobNo = #{jobNo} and createdDate > date_sub(now(), INTERVAL 12 hour)
+	</delete>
+	
+	<insert id="updateRoomStatus" parameterType="HashMap">
+		insert into alba_job_room_based_history(roomNo, jobNo, work_seq,createdDate)
+		values(#{roomNo}, #{jobNo}, #{workSeq}, NOW())
 	</insert>
 	
-	<update id="updateTempUser" parameterType="HashMap">
-		update temp_user
-		set appVersion=#{appVersion}
-		, updatedDate=NOW()
-		where tempUserNo=#{tempUserNo}
-	</update>
+	<delete id="deleteEtcStatus" parameterType="HashMap">
+		delete from alba_job_hall_based_history
+		where jobNo = #{jobNo} and createdDate > date_sub(now(), INTERVAL 12 hour)
+	</delete>
 	
+	<insert id="updateEtcStatus" parameterType="HashMap">
+		insert into alba_job_hall_based_history(jobNo, work_seq,createdDate)
+		values(#{jobNo}, #{workSeq}, NOW())
+	</insert>
+	
+	<insert id="updateMoneyHistory" parameterType="HashMap">
+		INSERT INTO alba_money_history (work_seq, w50000, w10000, w5000, w1000, w500, w100, w50, w10, createdDate) 
+		VALUES (#{workSeq}, #{w50000}, #{w10000}, #{w5000}, #{w1000}, #{w500}, #{w100}, #{w50}, #{w10}, NOW())
+	</insert>
+	
+	<select id="selectMoneyHistory" resultType="java.util.HashMap">
+		SELECT *
+		FROM alba_money_history
+		where work_seq = #{workSeq}
+	</select>
+	
+	<delete id="deleteMoneyHistory" parameterType="HashMap">
+		delete from alba_money_history
+		where work_seq = #{workSeq}
+	</delete>
 </mapper>

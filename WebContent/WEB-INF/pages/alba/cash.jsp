@@ -1,5 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+    
+<%
+	String workSeq = request.getParameter("workSeq");
+%>
+
 <!DOCTYPE html>
 <html>
   <head>
@@ -65,6 +70,8 @@
 
     <script language="javascript">
     	
+    	var workSeq = '<%= workSeq %>';
+    
     	jQuery(document).ready(function(){
 			try {
 
@@ -98,11 +105,12 @@
                 if ( w500 == '' ) w500 = 0;
                 w500 = parseInt(w500);
 
+                /*
                 var w100 = $('input[name=w100]').val();
                 if ( w100 == '' ) w100 = 0;
                 w100 = parseInt(w100);
-
-                var sum = w50000 * 50000 + w10000 * 10000 + w5000 * 5000 + w1000 * 1000 + w500 * 500 + w100 * 100;
+*/
+                var sum = w50000 * 50000 + w10000 * 10000 + w5000 * 5000 + w1000 * 1000 + w500 * 500; // + w100 * 100;
                 $('#sum').html( '합계: ' + addComma(sum) + '원' );
 
             } catch ( ex ) {
@@ -117,7 +125,67 @@
 
         function save(){
             if ( confirm('금액을 저장하시겠습니까?') ) {
-                alert('저장되었습니다.');
+            	
+            	var w50000 = $('input[name=w50000]').val();
+                if ( w50000 == '' ) w50000 = 0;
+                w50000 = parseInt(w50000);
+
+                var w10000 = $('input[name=w10000]').val();
+                if ( w10000 == '' ) w10000 = 0;
+                w10000 = parseInt(w10000);
+
+                var w5000 = $('input[name=w5000]').val();
+                if ( w5000 == '' ) w5000 = 0;
+                w5000 = parseInt(w5000);
+
+                var w1000 = $('input[name=w1000]').val();
+                if ( w1000 == '' ) w1000 = 0;
+                w1000 = parseInt(w1000);
+
+                var w500 = $('input[name=w500]').val();
+                if ( w500 == '' ) w500 = 0;
+                w500 = parseInt(w500);
+
+                /*
+                var w100 = $('input[name=w100]').val();
+                if ( w100 == '' ) w100 = 0;
+                w100 = parseInt(w100);
+                */
+            	var param = {"workSeq": workSeq
+        				, "w50000" : w50000
+        				, "w10000" : w10000
+        				, "w5000" : w5000
+        				, "w1000" : w1000
+        				, "w500" : w500
+        			/*	, "w100" : w100 */
+        		}
+        		
+        		
+    			jQuery.ajax({
+        			type : "POST",
+        			url : "/karaoke/alba/updateMoneyHistory.do",
+        			data : JSON.stringify( param ),
+        			dataType : "JSON", // 옵션이므로 JSON으로 받을게 아니면 안써도 됨
+        			contentType : "application/json; charset=UTF-8",
+        			success : function(result) {
+        				// 통신이 성공적으로 이루어졌을 때 이 함수를 타게 된다.
+        				// TODO
+        				try {
+        					
+    						if ( result.resCode == '0000' ) {
+    							alert('저장되었습니다.');
+        					}
+        					
+        				} catch (ex) {
+        					alert(ex.message);
+        				}
+        			},
+        			error : function(xhr, status, error) {
+        				alert("에러발생(getCityList)" + error );
+        			}
+        		});
+    			
+                
             }
         }
         
@@ -132,8 +200,7 @@
   	<div id="wrapper">
   		
         <div id="workInfo">
-            근무자 : <span>강수현</span><br/>
-            근무 seq : <span>1</span>
+            근무 seq : <span><%= workSeq %></span>
         </div>
 
         <table id="cashInfo">
@@ -157,10 +224,10 @@
                 <th>500원짜리</th>
                 <td><input type="number" name="w500" /> 개</td>
             </tr>
-            <tr>
+            <!-- tr>
                 <th>100원짜리</th>
-                <td><input type="number" name="w100" /> 개</td>
-            </tr>
+                <td><input type="number" name="w100" disabled="disabled"/> 개</td>
+            </tr-->
         </table>
         
         <div id="sum"></div>

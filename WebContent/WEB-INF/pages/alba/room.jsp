@@ -1,13 +1,15 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+
+<%
+	String workSeq = request.getParameter("workSeq");
+%>
 <!DOCTYPE html>
 <html>
   <head>
 	<meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width" />
 	<script type="text/javascript" src="//www.hereby.co.kr/nearhere/js//jquery-1.11.3.min.js"></script>
     <script type="text/javascript" src="http://script.gmarket.co.kr/js/mobile/main/common/handlebars-v1.1.2.js"></script>
-    <script type="text/javascript" src="roomStatus.js"></script>
-    <script type="text/javascript" src="hallStatus.js"></script>
 
     <style type="text/css">
     	
@@ -83,29 +85,28 @@
     	}
 
     	.btns{
-    		float:right;
-            width:70%;
+    		width:100%;
     	}
 
     	.btnItem{
-    		margin:5px;
-    		font-size:22px;
+    		float:left;
+    		width:45%;
+    		margin:5px 5px;
+    		padding:5px 0px;
+    		line-height:30px;
+    		text-align:center;
     	}
 
-		input[type=checkbox]
-		{
-		  /* Double-sized Checkboxes */
-		  -ms-transform: scale(2); /* IE */
-		  -moz-transform: scale(2); /* FF */
-		  -webkit-transform: scale(2); /* Safari and Chrome */
-		  -o-transform: scale(2); /* Opera */
-		  padding: 10px;
-		}
-
+		.selected{
+    		background:black;
+    		color:white;
+    	}
+    	
 		.etc{
 			margin:10px 0px;
             border:1px solid black;
             padding:10px;
+            overflow:auto;
     	}
     	
     	.btnFull{
@@ -132,6 +133,7 @@
 
     <script language="javascript">
     	
+    	var workSeq = '<%= workSeq %>';
         var data = {};
         var roomStatus = {};
 
@@ -148,7 +150,7 @@
                 Handlebars.registerHelper("checkStatus", function(value, options)
                 {
                     if ( value == 'Y' )
-                        return 'checked=checked';
+                        return 'selected';
                     return '';
                 });
                 
@@ -204,11 +206,6 @@
     					alert(ex.message);
     				}
     			},
-    			complete : function(data) {
-    				// 통신이 실패했어도 완료가 되었을 때 이 함수를 타게 된다.
-    				// TODO
-    				bLoading = false;
-    			},
     			error : function(xhr, status, error) {
     				alert("에러발생(getCityList)" + error );
     			}
@@ -251,20 +248,42 @@
     					var html    = template(data);
     					$('#roomList').html(html);
 
-    					/*
-    	                source = $('#etc-template').html();
-    	                template = Handlebars.compile(source);
-    	                html    = template(hallStatus);
-    	                $('#etcItems').html(html);
-    					*/
+    					$('#roomList').show();
+    					
+    					loadHallStatus();
+    					
     				} catch (ex) {
     					alert(ex.message);
     				}
     			},
-    			complete : function(data) {
-    				// 통신이 실패했어도 완료가 되었을 때 이 함수를 타게 된다.
+    			error : function(xhr, status, error) {
+    				alert("에러발생(getCityList)" + error );
+    			}
+    		});
+    	}
+    	
+    	function loadHallStatus(){
+    		var param = {};
+    		
+    		jQuery.ajax({
+    			type : "POST",
+    			url : "/karaoke/alba/getEtcStatus.do",
+    			data : JSON.stringify( param ),
+    			dataType : "JSON", // 옵션이므로 JSON으로 받을게 아니면 안써도 됨
+    			contentType : "application/json; charset=UTF-8",
+    			success : function(result) {
+    				// 통신이 성공적으로 이루어졌을 때 이 함수를 타게 된다.
     				// TODO
-    				bLoading = false;
+    				try {
+    					
+    					source = $('#etc-template').html();
+    	                template = Handlebars.compile(source);
+    	                html    = template(result.data);
+    	                $('#etcItems').html(html);
+    					
+    				} catch (ex) {
+    					alert(ex.message);
+    				}
     			},
     			error : function(xhr, status, error) {
     				alert("에러발생(getCityList)" + error );
@@ -277,15 +296,106 @@
     	}
     	
     	function showRemained(){
-    		$('input[type=checkbox]:checked').closest('.btnItem').hide();
+    		$('.selected').hide();
     		$('#btnShowAll').show();
     	}
 
     	function showAll(){
-    		$('input[type=checkbox]').closest('.btnItem').show();
+    		$('.selected').show();
     		$('#btnShowAll').hide();
     	}
 
+    	function updateRoomStatus( div ){
+    		var param = {"roomNo": $(div).attr("roomNo")
+    				, "jobNo" : $(div).attr("jobNo")
+    				, "workSeq": workSeq
+    				, "cleanYN" : $(div).hasClass('selected') ? 'N':'Y'
+    		}
+    		
+    		if ( $(div).hasClass('selected') )
+    			$(div).removeClass('selected');
+    		else
+    			$(div).addClass('selected');
+    		
+			jQuery.ajax({
+    			type : "POST",
+    			url : "/karaoke/alba/updateRoomStatus.do",
+    			data : JSON.stringify( param ),
+    			dataType : "JSON", // 옵션이므로 JSON으로 받을게 아니면 안써도 됨
+    			contentType : "application/json; charset=UTF-8",
+    			success : function(result) {
+    				// 통신이 성공적으로 이루어졌을 때 이 함수를 타게 된다.
+    				// TODO
+    				try {
+    					
+						if ( result.resCode == '0000' ) {
+    						
+    					}
+    					else {
+    					
+    						alert( result.resMsg );
+    						
+    						if ( $(div).hasClass('selected') )
+        		    			$(div).removeClass('selected');
+        		    		else
+        		    			$(div).addClass('selected');
+    					}
+    					
+    				} catch (ex) {
+    					alert(ex.message);
+    				}
+    			},
+    			error : function(xhr, status, error) {
+    				alert("에러발생(getCityList)" + error );
+    			}
+    		});
+    	}
+    	
+    	function updateEtcStatus( div ){
+    		var param = {"jobNo" : $(div).attr("jobNo")
+    				, "workSeq": workSeq
+    				, "cleanYN" : $(div).hasClass('selected') ? 'N':'Y'
+    		}
+    		
+    		if ( $(div).hasClass('selected') )
+    			$(div).removeClass('selected');
+    		else
+    			$(div).addClass('selected');
+    			
+    		jQuery.ajax({
+    			type : "POST",
+    			url : "/karaoke/alba/updateEtcStatus.do",
+    			data : JSON.stringify( param ),
+    			dataType : "JSON", // 옵션이므로 JSON으로 받을게 아니면 안써도 됨
+    			contentType : "application/json; charset=UTF-8",
+    			success : function(result) {
+    				// 통신이 성공적으로 이루어졌을 때 이 함수를 타게 된다.
+    				// TODO
+    				try {
+    					
+    					if ( result.resCode == '0000' ) {
+    						
+    					}
+    					else {
+    					
+    						alert( result.resMsg );
+    						
+    						if ( $(div).hasClass('selected') )
+        		    			$(div).removeClass('selected');
+        		    		else
+        		    			$(div).addClass('selected');
+    					}
+    					
+    				} catch (ex) {
+    					alert(ex.message);
+    				}
+    			},
+    			error : function(xhr, status, error) {
+    				alert("에러발생(getCityList)" + error );
+    			}
+    		});
+    	}
+    	
     	function closeWindow() {
     		document.location.href = 'android://finishActivity';
     	}
@@ -297,17 +407,19 @@
       {{#each roomList}}
         <li>
 			<div class="room">
+
+				<div>룸{{roomNo}}</div>
+
 				<div class="btns">
 					{{#each details}}
-					<div class="btnItem">
-                        <input type="checkbox" id="chk{{roomNo}}{{jobNo}}" {{checkStatus cleanYN}} />
-                        <label for="chk{{roomNo}}{{jobNo}}">{{jobName}}</label>
+					<div class="btnItem {{checkStatus cleanYN}}" roomNo="{{roomNo}}" jobNo="{{jobNo}}" onclick="updateRoomStatus(this);">
+						{{jobName}}
                     </div>
 					{{/each}}
 					<!--div class="btnItem"><input type="button" onclick="showRoom({{roomNo}});" value="상세" /></div-->
 				</div>
 
-				<div>룸{{roomNo}}</div>
+				
 			</div>
 		</li>
       {{/each}}
@@ -315,10 +427,11 @@
     </script>
 
     <script id="etc-template" type="text/x-handlebars-template">
-      {{#each items}}
+      {{#each data}}
         <div>
-            <input type="checkbox" id="chk{{jobNo}}"/>
-            <label for="chk{{jobNo}}">{{jobName}}</label>
+            <div class="btnItem {{checkStatus cleanYN}}" jobNo="{{jobNo}}" onclick="updateEtcStatus(this);">
+				{{jobName}}
+            </div>
         </div>
       {{/each}}
     </script>
@@ -327,11 +440,12 @@
   <body>
   	<div id="wrapper">
   		
-  		<div id="workseq">근무 seq : 1</div>
-		청소현황
-  		<div id="roomList">
+  		<div id="workseq">근무 seq : <%= workSeq %></div>
+		룸 청소현황
+  		<div id="roomList" style="display:none;width:100%">
   		</div>
 
+		기타 청소현황
   		<div id="etcItems" class="etc">
   		</div>
 

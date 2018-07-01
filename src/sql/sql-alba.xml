@@ -121,8 +121,8 @@
 	</insert>
 	
 	<insert id="updateMoneyHistory" parameterType="HashMap">
-		INSERT INTO alba_money_history (work_seq, w50000, w10000, w5000, w1000, w500, w100, w50, w10, createdDate) 
-		VALUES (#{workSeq}, #{w50000}, #{w10000}, #{w5000}, #{w1000}, #{w500}, #{w100}, #{w50}, #{w10}, NOW())
+		INSERT INTO alba_money_history (work_seq, w50000, w10000, w5000, w1000, w500, w100, w50, w10, sum, createdDate) 
+		VALUES (#{workSeq}, #{w50000}, #{w10000}, #{w5000}, #{w1000}, #{w500}, #{w100}, #{w50}, #{w10}, #{sum}, NOW())
 	</insert>
 	
 	<select id="selectMoneyHistory" resultType="java.util.HashMap">
